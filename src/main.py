@@ -1,9 +1,8 @@
 import os
-import json 
 
 import aiohttp
-from fastapi import (FastAPI, APIRouter, Request,
-                     Response)
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from dotenv import load_dotenv
 
@@ -23,7 +22,15 @@ async def get_profile_info(access_token: str) -> dict:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return await response.json()
+        
 
+async def get_user_friends(access_token: str) -> dict:
+    url = 'https://api.vk.com/method/friends.get?' \
+          f'access_token={access_token}&v=5.199'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return await response.json()
+        
 
 @app.get('/auth/callback')
 async def callback(code: str):
@@ -31,7 +38,19 @@ async def callback(code: str):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             json = await response.json()
-            print(json)
             access_token = json['access_token']
+            id = json['user_id']
             profile = await get_profile_info(access_token)
-            print(profile)
+            profile = profile['response']
+            first_name, last_name = profile['first_name'], profile['last_name']
+            full_name = first_name + ' ' + last_name
+            photo = profile['photo_200']
+            friends_ids = await get_user_friends(access_token)
+            friends_ids = friends_ids['response']['items']
+            res =  RedirectResponse('https://prison-day.ru')
+            res.set_cookie('access_token', access_token)
+            res.set_cookie('user_id', id)
+            res.set_cookie('full_name', full_name)
+            res.set_cookie('friends_ids', friends_ids)
+            res.set_cookie('photo', photo)
+            return res 
