@@ -24,4 +24,4 @@ RUN poetry install $(test "$YOUR_ENV" == production && echo "--only=main") --no-
 
 COPY . /code
 
-CMD ["poetry", "run", "uvicorn", "src.main:app", "--reload"]
+CMD ["poetry", "run", "uvicorn", "src.main:app", "--reload", "--host", "0.0.0.0"]
