@@ -14,10 +14,7 @@ load_dotenv()
 CLIENT_SECRET = os.environ['OAUTH_VK_CLIENT_SECRET']
 
 
-auth = APIRouter(prefix='/auth')
-
 app = FastAPI()
-app.include_router(auth)
 
 
 async def get_profile_info(access_token: str) -> dict:
@@ -28,7 +25,7 @@ async def get_profile_info(access_token: str) -> dict:
             return await response.json()
 
 
-@auth.get('/callback')
+@app.get('/auth/callback')
 async def callback(code: str):
     url = f'https://oauth.vk.com/access_token?client_id=51858818&client_secret={CLIENT_SECRET}&code={code}&redirect_uri=https://prison-day.ru/callback&v=5.131&scope=65538'
     async with aiohttp.ClientSession() as session:
