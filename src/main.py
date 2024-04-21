@@ -50,7 +50,6 @@ async def callback(code: str):
             res =  RedirectResponse('https://prison-day.ru')
             res.set_cookie('access_token', access_token)
             res.set_cookie('user_id', id)
-            res.set_cookie('full_name', full_name)
             res.set_cookie('friends_ids', friends_ids)
             res.set_cookie('photo', photo)
             return res 
