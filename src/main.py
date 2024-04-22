@@ -1,5 +1,7 @@
 import os
 
+from pydantic import BaseModel
+
 import aiohttp
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
@@ -14,6 +16,10 @@ CLIENT_SECRET = os.environ['OAUTH_VK_CLIENT_SECRET']
 
 
 app = FastAPI()
+
+
+class DownloadRequest(BaseModel):
+    url: str
 
 
 async def get_profile_info(access_token: str) -> dict:
@@ -44,3 +50,11 @@ async def callback(code: str):
             res.set_cookie('access_token', access_token)
             res.set_cookie('user_id', id)
             return res 
+
+
+@app.post('/auth/download')
+async def download(req: DownloadRequest):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(req.url) as response:
+            return await response.json()
+        
