@@ -3,8 +3,10 @@ import os
 from pydantic import BaseModel
 
 import aiohttp
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from dotenv import load_dotenv
 
@@ -16,6 +18,11 @@ CLIENT_SECRET = os.environ['OAUTH_VK_CLIENT_SECRET']
 
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
+
+
+templates = Jinja2Templates(directory="src/templates")
 
 
 class DownloadRequest(BaseModel):
@@ -46,10 +53,17 @@ async def callback(code: str):
             json = await response.json()
             access_token = json['access_token']
             id = json['user_id']
-            res =  RedirectResponse('https://prison-day.ru')
+            res =  RedirectResponse('https://prison-day.ru/auth/success')
             res.set_cookie('access_token', access_token)
             res.set_cookie('user_id', id)
             return res 
+
+
+@app.get('/auth/success')
+async def get_page(request: Request):
+    return templates.TemplateResponse(
+        request=request, name="success.html"
+    )
 
 
 @app.post('/auth/download')
